@@ -11,7 +11,7 @@ import java.util.List;
 
 public class DatabaseHandler {
 
-    private static final String DB_PATH = "jdbc:sqlite:local_storage.db";
+    private static final String DB_PATH = "jdbc:sqlite:target/local_storage.db";
 
     public DatabaseHandler() {
         initDB();
@@ -42,24 +42,6 @@ public class DatabaseHandler {
             pstmt.setString(2, fileType);
             pstmt.setString(3, fileHash);
             pstmt.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void fetchData() {
-        String fetchDataQuery = "SELECT * FROM files_info";
-        try (Connection conn = DriverManager.getConnection(DB_PATH);
-             PreparedStatement pstmt = conn.prepareStatement(fetchDataQuery);
-             ResultSet rs = pstmt.executeQuery()) {
-
-            while (rs.next()) {
-                System.out.println("ID: " + rs.getInt("id") +
-                        ", File Path: " + rs.getString("file_path") +
-                        ", File Type: " + rs.getString("file_type") +
-                        ", File Hash: " + rs.getString("file_hash"));
-            }
 
         } catch (SQLException e) {
             e.printStackTrace();
