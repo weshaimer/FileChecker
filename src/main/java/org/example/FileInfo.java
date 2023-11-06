@@ -53,6 +53,13 @@ public final class FileInfo {
 //            case "SHA-256v3":
 //                this.hashSHA256 = getSHA256v3(this.absolutePath);
 //                break;
+            case "Text":
+                try {
+                    this.hashSHA256 = TextHasher.calculateSHA256(new File(this.absolutePath));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
             default:
                 this.hashSHA256 = getSHA256v2(this.absolutePath);
                 break;
