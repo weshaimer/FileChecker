@@ -14,12 +14,14 @@ public final class FileInfo {
                 "jpg","jpeg","jpe", "png","tif","tiff","svg","bmp","webp", "jfif"
 //            "jxr",  // ПО УМОЛЧАНИЮ НЕ ЧИТАЕТСЯ
         };
-    private static final String[] TEXT_EXTENSIONS = {};
+    private static final String[] TEXT_EXTENSIONS = {
+            "txt", "md", "html", "css", "js", "json", "xml", "csv", "py", "java", "c", "cpp", "rb", "php", "yaml", "toml", "ini", "cfg", "log", "bat", "sh", "sql", "rtf", "tex", "lrc", "sub", "srt", "ass", "ssa", "vtt"
+    };
     private static final String[] AUDIO_EXTENSIONS = {};
 
     private final String absolutePath;
     private final String type;
-    private String hashSHA256;
+    private String hash;
 
     // Конструктор
 
@@ -27,10 +29,10 @@ public final class FileInfo {
         this.absolutePath = absolutePath;
         this.type = getType(getFileExtension(this.absolutePath));
     }
-    public FileInfo(String absolutePath, String type, String hashSHA256) {
+    public FileInfo(String absolutePath, String type, String hash) {
         this.absolutePath = absolutePath;
         this.type = type;
-        this.hashSHA256 = hashSHA256;
+        this.hash = hash;
     }
     public static FileInfo get(String absolutePath) {
 
@@ -48,20 +50,17 @@ public final class FileInfo {
     public void calcHash() {
         switch (this.type) {
             case "Image":
-                this.hashSHA256 = calculatePHashImage(this.absolutePath);
+                this.hash = calculatePHashImage(this.absolutePath);
                 break;
-//            case "SHA-256v3":
-//                this.hashSHA256 = getSHA256v3(this.absolutePath);
-//                break;
             case "Text":
                 try {
-                    this.hashSHA256 = TextHasher.calculateSHA256(new File(this.absolutePath));
+                    this.hash = TextHasher.calculateSHA256(new File(this.absolutePath));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
                 break;
             default:
-                this.hashSHA256 = getSHA256v2(this.absolutePath);
+                this.hash = getSHA256v2(this.absolutePath);
                 break;
         }
 
@@ -234,7 +233,7 @@ public final class FileInfo {
 */
                 "filePath='" + absolutePath + '\'' +
                 ", fileType='" + type + '\'' +
-                ", fileHash='" + hashSHA256 + '\'' +
+                ", fileHash='" + hash + '\'' +
                 '}';
     }
 }

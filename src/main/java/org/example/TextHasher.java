@@ -4,27 +4,27 @@ import java.io.*;
 import java.security.*;
 
 public class TextHasher {
-    public static void main(String[] args) {
-        // Массив расширений файлов, которые нужно хэшировать
-        String[] fileExtensions = {".txt", ".md", ".html", ".css", ".js", ".json", ".xml", ".csv", ".log", ".py", ".java", ".c", ".cpp", ".rb", ".php", ".yaml", ".toml", ".ini", ".cfg", ".log", ".bat", ".sh", ".sql", ".rtf", ".tex", ".lrc", ".sub", ".srt", ".ass", ".ssa", ".vtt"};
-
-        // Перебор всех указанных расширений
-        for (String fileExtension : fileExtensions) {
-            // Поиск файлов с указанным расширением в текущем каталоге
-            File[] files = new File(".").listFiles((dir, name) -> name.endsWith(fileExtension));
-
-            // Перебор найденных файлов
-            for (File file : files) {
-                try {
-                    // Вычисление SHA-256 хэша файла
-                    String hash = calculateSHA256(file);
-                    System.out.println(file.getName() + " - SHA-256: " + hash);
-                } catch (IOException | NoSuchAlgorithmException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
+//    public static void main(String[] args) {
+//        // Массив расширений файлов, которые нужно хэшировать
+//        String[] fileExtensions = {".txt", ".md", ".html", ".css", ".js", ".json", ".xml", ".csv", ".log", ".py", ".java", ".c", ".cpp", ".rb", ".php", ".yaml", ".toml", ".ini", ".cfg", ".log", ".bat", ".sh", ".sql", ".rtf", ".tex", ".lrc", ".sub", ".srt", ".ass", ".ssa", ".vtt"};
+//
+//        // Перебор всех указанных расширений
+//        for (String fileExtension : fileExtensions) {
+//            // Поиск файлов с указанным расширением в текущем каталоге
+//            File[] files = new File(".").listFiles((dir, name) -> name.endsWith(fileExtension));
+//
+//            // Перебор найденных файлов
+//            for (File file : files) {
+//                try {
+//                    // Вычисление SHA-256 хэша файла
+//                    String hash = calculateSHA256(file);
+//                    System.out.println(file.getName() + " - SHA-256: " + hash);
+//                } catch (IOException | NoSuchAlgorithmException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//    }
 
     // Метод для вычисления SHA-256 хэша файла
     public static String calculateSHA256(File file) throws IOException, NoSuchAlgorithmException {
