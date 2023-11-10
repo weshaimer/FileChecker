@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.File;
+
 
 public class DatabaseHandler {
 
@@ -19,20 +21,30 @@ public class DatabaseHandler {
         gson = new Gson();
         loadData();
     }
-
     private void loadData() {
-        try (FileReader reader = new FileReader(JSON_PATH)) {
-            Type listType = new TypeToken<ArrayList<FileInfo>>(){}.getType();
-            files = gson.fromJson(reader, listType);
+        File jsonFile = new File(JSON_PATH);
 
-            if (files == null) {
+        // Проверяем, существует ли файл
+        if (jsonFile.exists()) {
+            // Если файл существует, читаем данные из него
+            try (FileReader reader = new FileReader(jsonFile)) {
+                Type listType = new TypeToken<ArrayList<FileInfo>>(){}.getType();
+                files = gson.fromJson(reader, listType);
+
+                if (files == null) {
+                    files = new ArrayList<>();
+                }
+            } catch (IOException e) {
                 files = new ArrayList<>();
+                e.printStackTrace();
             }
-        } catch (IOException e) {
+        } else {
+            // Если файл не существует, инициализируем пустой список
             files = new ArrayList<>();
+            // Здесь можно добавить дополнительные действия, например, создание файла
+            saveData(); // Это создаст пустой JSON файл
         }
     }
-
     private void saveData() {
         try (FileWriter writer = new FileWriter(JSON_PATH)) {
             gson.toJson(files, writer);
