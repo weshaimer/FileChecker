@@ -20,7 +20,7 @@ public final class FileInfo {
     private static final String[] AUDIO_EXTENSIONS = {};
 
     private final String absolutePath;
-    private final String type;
+    public final String type;
     private String hash;
 
     // Конструктор
