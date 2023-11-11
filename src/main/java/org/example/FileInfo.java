@@ -15,13 +15,20 @@ public final class FileInfo {
 //            "jxr",  // ПО УМОЛЧАНИЮ НЕ ЧИТАЕТСЯ
         };
     private static final String[] TEXT_EXTENSIONS = {
-            "txt", "md", "html", "css", "js", "json", "xml", "csv", "py", "java", "c", "cpp", "rb", "php", "yaml", "toml", "ini", "cfg", "log", "bat", "sh", "sql", "rtf", "tex", "lrc", "sub", "srt", "ass", "ssa", "vtt"
+            "txt", "md",
+            "html", "htm", "mhtml", "mht",
+            "css", "js", "json", "xml", "csv", "py", "java",
+            "c", "cpp", "rb", "php", "yaml", "toml", "ini",
+            "cfg", "log", "bat", "sh", "sql", "rtf", "tex",
+            "lrc", "sub", "srt", "ass", "ssa", "vtt", "doc",
+            "docx", "docm", "dotx", "dotm", "dot", "odt",
+            "pdf", "xps"
     };
     private static final String[] AUDIO_EXTENSIONS = {};
 
-    private final String absolutePath;
+    public final String absolutePath;
     public final String type;
-    private String hash;
+    public String hash;
 
     // Конструктор
 
