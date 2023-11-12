@@ -66,6 +66,13 @@ public final class FileInfo {
                     e.printStackTrace();
                 }
                 break;
+            case "Photo":
+                try {
+                    this.hash = PhotoHashing.calculatePHashPhoto(new File(this.absolutePath));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
             default:
                 this.hash = getSHA256v2(this.absolutePath);
                 break;
