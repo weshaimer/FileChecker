@@ -11,7 +11,7 @@ public final class FileInfo {
 //    private int id;
     private static final String[] IMAGE_EXTENSIONS =
         {
-                "jpg","jpeg","jpe", "png","tif","tiff","svg","bmp","webp", "jfif"
+                "jpg","jpeg","jpe", "png","tif","tiff","svg","bmp","webp", "jfif", "heic","arw"
 //            "jxr",  // ПО УМОЛЧАНИЮ НЕ ЧИТАЕТСЯ
         };
     private static final String[] TEXT_EXTENSIONS = {
@@ -48,7 +48,7 @@ public final class FileInfo {
 
     public String getFileExtension(String filePath) {
         if (filePath != null && filePath.lastIndexOf(".") != -1) {
-            return filePath.substring(filePath.lastIndexOf(".") + 1);
+            return filePath.substring(filePath.lastIndexOf(".") + 1).toLowerCase();
         } else {
             return "Unknown";
         }
@@ -66,7 +66,7 @@ public final class FileInfo {
                     e.printStackTrace();
                 }
                 break;
-            case "Photo":
+            case "Image":
                 try {
                     this.hash = PhotoHashing.calculatePHashPhoto(new File(this.absolutePath));
                 } catch (Exception e) {

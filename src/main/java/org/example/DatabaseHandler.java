@@ -149,7 +149,7 @@ public class DatabaseHandler {
                     } else {
 
                     }
-        try (FileWriter writer = new FileWriter("target\\"+type+".txt")) {
+        try (FileWriter writer = new FileWriter("target/"+type+".txt")) {
             for (Map.Entry<String, Set<String>> entry : hashToFiles.entrySet()) {
                 if (entry.getValue().size() > 1) {
                     writer.write("Хэш " + entry.getKey() + " встречается " + entry.getValue().size() + " раз в:" + System.lineSeparator());
