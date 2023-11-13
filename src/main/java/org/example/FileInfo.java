@@ -56,9 +56,9 @@ public final class FileInfo {
 
     public void calcHash() {
         switch (this.type) {
-            case "Image":
-                this.hash = calculatePHashImage(this.absolutePath);
-                break;
+//            case "Image":
+//                this.hash = calculatePHashImage(this.absolutePath);
+//                break;
             case "Text":
                 try {
                     this.hash = TextHasher.calculateSHA256(new File(this.absolutePath));
@@ -196,47 +196,47 @@ public final class FileInfo {
 //        return "0";
 //    }
 
-    public String calculatePHashImage(String imagePath) {
-        try {
-            BufferedImage image = ImageIO.read(new File(imagePath));
-            int size = 8; // Размер блока
-            int width = image.getWidth();
-            int height = image.getHeight();
-
-            // Шаг 2: Преобразование в черно-белое изображение
-            BufferedImage grayscaleImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
-            grayscaleImage.getGraphics().drawImage(image, 0, 0, null);
-
-            // Шаг 3: Уменьшение размера
-            BufferedImage resizedImage = new BufferedImage(size, size, BufferedImage.TYPE_BYTE_GRAY);
-            resizedImage.getGraphics().drawImage(grayscaleImage, 0, 0, size, size, null);
-
-            // Шаг 4: Разбиение на блоки и вычисление среднего
-            long avgValue = 0;
-            long hash = 0;
-            for (int y = 0; y < size; y++) {
-                for (int x = 0; x < size; x++) {
-                    int pixel = resizedImage.getRGB(x, y);
-                    avgValue += (pixel & 0xff);
-                }
-            }
-            avgValue /= size * size;
-
-            // Шаг 6 и 7: Сравнение и создание pHash
-            for (int y = 0; y < size; y++) {
-                for (int x = 0; x < size; x++) {
-                    int pixel = resizedImage.getRGB(x, y);
-                    long bit = (pixel & 0xff) >= avgValue ? 1 : 0;
-                    hash = (hash << 1) | bit;
-                }
-            }
-
-            return Long.toHexString(hash);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "0";
-        }
-    }
+//    public String calculatePHashImage(String imagePath) {
+//        try {
+//            BufferedImage image = ImageIO.read(new File(imagePath));
+//            int size = 8; // Размер блока
+//            int width = image.getWidth();
+//            int height = image.getHeight();
+//
+//            // Шаг 2: Преобразование в черно-белое изображение
+//            BufferedImage grayscaleImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+//            grayscaleImage.getGraphics().drawImage(image, 0, 0, null);
+//
+//            // Шаг 3: Уменьшение размера
+//            BufferedImage resizedImage = new BufferedImage(size, size, BufferedImage.TYPE_BYTE_GRAY);
+//            resizedImage.getGraphics().drawImage(grayscaleImage, 0, 0, size, size, null);
+//
+//            // Шаг 4: Разбиение на блоки и вычисление среднего
+//            long avgValue = 0;
+//            long hash = 0;
+//            for (int y = 0; y < size; y++) {
+//                for (int x = 0; x < size; x++) {
+//                    int pixel = resizedImage.getRGB(x, y);
+//                    avgValue += (pixel & 0xff);
+//                }
+//            }
+//            avgValue /= size * size;
+//
+//            // Шаг 6 и 7: Сравнение и создание pHash
+//            for (int y = 0; y < size; y++) {
+//                for (int x = 0; x < size; x++) {
+//                    int pixel = resizedImage.getRGB(x, y);
+//                    long bit = (pixel & 0xff) >= avgValue ? 1 : 0;
+//                    hash = (hash << 1) | bit;
+//                }
+//            }
+//
+//            return Long.toHexString(hash);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            return "0";
+//        }
+//    }
 
     // Дополнительно: Метод toString() для удобного представления информации об объекте
     @Override

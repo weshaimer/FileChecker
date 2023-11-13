@@ -13,7 +13,7 @@ public class PhotoHashing {
 
     public static void main(String[] args) {
         // Путь к директории с фотографиями
-        String directoryPath = "//Users/dark_kat/Desktop/1112";
+        String directoryPath = "/Users/dark_kat/Desktop/лаба 6";
 
         // Получаем список файлов в директории
         List<File> imageFiles = getSupportedImageFiles(directoryPath);
@@ -82,8 +82,8 @@ public class PhotoHashing {
 
     private static File resizeImage(File originalImage) throws IOException {
         // Изменяем размер изображения до 32x32 пикселей
-        File resizedImage = new File("resized_" + originalImage.getName());
-        Thumbnails.of(originalImage).size(32, 32).toFile(resizedImage);
+        File resizedImage = new File("resized_" + originalImage.getName() + ".jpg");
+        Thumbnails.of(originalImage).size(32, 32).outputFormat("jpg").toFile(resizedImage);
         return resizedImage;
     }
 

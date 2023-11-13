@@ -12,7 +12,7 @@ public class FileChecker {
 
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
-        String rootPath = "C:\\Users\\Mia\\Desktop\\test";
+        String rootPath = "/Users/dark_kat/Desktop/eng";
         DatabaseHandler dbHandler = new DatabaseHandler(rootPath);
         // Замените на путь к корневому каталогу вашей файловой системы
         long midTime = System.currentTimeMillis();
