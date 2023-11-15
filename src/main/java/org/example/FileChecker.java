@@ -1,6 +1,5 @@
 package org.example;
 
-import java.io.*;
 import java.util.*;
 
 import java.util.concurrent.ExecutorService;
@@ -13,15 +12,15 @@ public class FileChecker {
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
         String rootPath = "";
-        DatabaseHandler dbHandler = new DatabaseHandler(rootPath);
+        DatabaseHandlerSQL dbHandler = new DatabaseHandlerSQL();
         // Замените на путь к корневому каталогу вашей файловой системы
-        long midTime = System.currentTimeMillis();
+        long checkTime = System.currentTimeMillis();
         int THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors(); // Количество потоков в пуле
         ExecutorService executorService;
         if (THREAD_POOL_SIZE > 4) executorService = Executors.newScheduledThreadPool(4);
         else executorService = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
-
-        for (FileInfo file : dbHandler.files) {
+        List<FileInfo> fetchDocuments = DatabaseHandlerSQL.checkFileSystem(rootPath);
+        for (FileInfo file : fetchDocuments) {
             executorService.execute(() -> {
                 synchronized (file) {
                     file.calcHash();
@@ -38,21 +37,26 @@ public class FileChecker {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // Сохраняем пути в файл
+        long hashTime = System.currentTimeMillis();
+//         Сохраняем пути в файл
 //        savePathsToFile(paths, "fileSystemPaths1.txt");
-        dbHandler.saveData();
+//        dbHandler.saveData();
+        dbHandler.insertData(fetchDocuments);
         long endTime = System.currentTimeMillis();
 
-        long timeMidElapse = midTime - startTime;
-        long timeElapsed = endTime - midTime;
-        System.out.println("Folders scan: " + timeMidElapse / 1000 + " Hashing: " + timeElapsed / 1000);
+        long timeCheck = checkTime - startTime;
+        long timeHash = hashTime - checkTime;
+        long timeElapsed = endTime - hashTime;
+        System.out.println("Folders scan: " + timeCheck / 1000 + " Hashing: " + timeHash / 1000 + " SQL: " + timeElapsed / 1000);
+//        for(FileInfo file : dbHandler.fetchDocuments(""))
+//            System.out.println(file.toString());
         dbHandler.dublicateCheck("Text", Boolean.FALSE);
         dbHandler.dublicateCheck("Image", Boolean.FALSE);
         dbHandler.dublicateCheck("Other", Boolean.FALSE);
     }
 
 
-//    public static void dublicateCheck(String fileNameFrom, String fileNameTo) {
+//     public static void dublicateCheck(String fileNameFrom, String fileNameTo) {
 //        Map<String, Set<String>> hashToFiles = new HashMap<>();
 ////        Map<String, String> imageHashes = new HashMap<>();
 //        try (BufferedReader reader = new BufferedReader(new FileReader(fileNameFrom))) {

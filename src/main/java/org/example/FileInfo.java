@@ -1,17 +1,18 @@
 package org.example;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.security.MessageDigest;
 import java.util.Arrays;
 
 
 public final class FileInfo {
-//    private int id;
     private static final String[] IMAGE_EXTENSIONS =
         {
-                "jpg","jpeg","jpe", "png","tif","tiff","svg","bmp","webp", "jfif", "heic","arw"
+                "jpg","jpeg","jpe", "png","tif","tiff",
+//                "svg",
+                "bmp",
+//                "webp",
+                "jfif", "heic","arw"
 //            "jxr",  // ПО УМОЛЧАНИЮ НЕ ЧИТАЕТСЯ
         };
     private static final String[] TEXT_EXTENSIONS = {
@@ -19,22 +20,22 @@ public final class FileInfo {
             "html", "htm", "mhtml", "mht",
             "css", "js", "json", "xml", "csv", "py", "java",
             "c", "cpp", "rb", "php", "yaml", "toml", "ini",
-            "cfg", "log", "bat", "sh", "sql", "rtf", "tex",
+            "cfg", "bat", "sh", "sql", "rtf", "tex",
             "lrc", "sub", "srt", "ass", "ssa", "vtt", "doc",
             "docx", "docm", "dotx", "dotm", "dot", "odt",
             "pdf", "xps"
     };
     private static final String[] AUDIO_EXTENSIONS = {};
 
-    public final String absolutePath;
-    public final String type;
-    public String hash;
+    private final String absolutePath;
+    private final String type;
+    private String hash;
 
     // Конструктор
 
     public FileInfo(String absolutePath) {
         this.absolutePath = absolutePath;
-        this.type = getType(getFileExtension(this.absolutePath));
+        this.type = setType(getFileExtension(this.absolutePath));
     }
     public FileInfo(String absolutePath, String type, String hash) {
         this.absolutePath = absolutePath;
@@ -46,7 +47,17 @@ public final class FileInfo {
         return new FileInfo(absolutePath);
     }
 
-    public String getFileExtension(String filePath) {
+    public String getType(){
+        return type;
+    }
+    public String getAbsolutePath(){
+        return absolutePath;
+    }
+    public String getHash(){
+        return hash;
+    }
+
+    private String getFileExtension(String filePath) {
         if (filePath != null && filePath.lastIndexOf(".") != -1) {
             return filePath.substring(filePath.lastIndexOf(".") + 1).toLowerCase();
         } else {
@@ -56,9 +67,6 @@ public final class FileInfo {
 
     public void calcHash() {
         switch (this.type) {
-//            case "Image":
-//                this.hash = calculatePHashImage(this.absolutePath);
-//                break;
             case "Text":
                 try {
                     this.hash = TextHasher.calculateSHA256(new File(this.absolutePath));
@@ -74,13 +82,13 @@ public final class FileInfo {
                 }
                 break;
             default:
-                this.hash = getSHA256v2(this.absolutePath);
+                this.hash = getSHA256v2(this.absolutePath,32768);
                 break;
         }
 
     }
 
-    public String getType(String extension) {
+    private String setType(String extension) {
         if (Arrays.asList(IMAGE_EXTENSIONS).contains(extension)) {
             return "Image";
         } else if (Arrays.asList(TEXT_EXTENSIONS).contains(extension)) {
@@ -145,11 +153,11 @@ public final class FileInfo {
 //        e.printStackTrace();
 //    }
 //        return "";}
-    private String getSHA256v2(String filePath){
+    private String getSHA256v2(String filePath, Integer byteCount){
 
         try {
             FileInputStream fileInputStream = new FileInputStream(filePath);
-            byte[] buffer = new byte[32768]; // Чтение 32 первых килобайт
+            byte[] buffer = new byte[byteCount]; // Чтение 32 первых килобайт
             int bytesRead = fileInputStream.read(buffer);
 
             if (bytesRead > 0) {

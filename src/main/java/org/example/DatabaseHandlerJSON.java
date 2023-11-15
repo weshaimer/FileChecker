@@ -1,6 +1,7 @@
 package org.example;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -10,14 +11,27 @@ import java.util.*;
 import java.io.File;
 
 
-public class DatabaseHandler {
+public class DatabaseHandlerJSON {
     private static final String[] EXCLUDED_EXTENSIONS = {".sys", ".log", ".tmp", ".temp"}; // Укажите расширения, которые нужно исключить
-    private static final String JSON_PATH = "target/local_storage.json";
+    private static String JSON_PATH;
     private Gson gson;
     public List<FileInfo> files;
 
-    public DatabaseHandler(String rootPath) {
-        gson = new Gson();
+//    public static void main(String[] args) {
+//        DatabaseHandlerJSON test = new DatabaseHandlerJSON("");
+//        test.saveData();
+//    }
+    public DatabaseHandlerJSON(String rootPath) {
+        String[] working = rootPath.replace(":","").split("/");
+        StringBuilder csvBuilder = new StringBuilder();
+        csvBuilder.append("target/");
+        for(String part : working){
+            csvBuilder.append(part);
+            csvBuilder.append("_");
+        }
+        csvBuilder.append(".json");
+        JSON_PATH = csvBuilder.toString();
+        gson = new GsonBuilder().setPrettyPrinting().create();
         loadData(rootPath);
     }
     private void loadData(String rootPath) {
@@ -39,12 +53,14 @@ public class DatabaseHandler {
             }
         } else {
             // Если файл не существует, инициализируем пустой список
+
             files = checkFileSystem(rootPath);
             // Здесь можно добавить дополнительные действия, например, создание файла
 //            saveData(); // Это создаст пустой JSON файл
         }
     }
     public void saveData() {
+
         try (FileWriter writer = new FileWriter(JSON_PATH)) {
             gson.toJson(files, writer);
         } catch (IOException e) {
@@ -67,7 +83,7 @@ public class DatabaseHandler {
         List<FileInfo> filteredFiles = new ArrayList<>();
         if (type.isEmpty()) {return filteredFiles;}
         for (FileInfo file : files) {
-            if(file.type.equals(type)) {
+            if(file.getType().equals(type)) {
                 filteredFiles.add(file);
             }
         }
@@ -129,7 +145,7 @@ public class DatabaseHandler {
     }
 
     private static boolean isWindowsSystemDirectory(File file) {
-        return file.getAbsolutePath().equalsIgnoreCase("C:\\Windows");
+        return file.getAbsolutePath().equalsIgnoreCase(System.getenv("windir"));
     }
     public void dublicateCheck(String type, Boolean isPartlyCheck) {
         Map<String, Set<String>> hashToFiles = new HashMap<>();
@@ -138,12 +154,12 @@ public class DatabaseHandler {
         List<FileInfo> localList = fetchDocuments(type);
                     if(!isPartlyCheck){
                         for (FileInfo file : localList) {
-                            if (hashToFiles.containsKey(file.hash)) {
-                                hashToFiles.get(file.hash).add(file.absolutePath);
+                            if (hashToFiles.containsKey(file.getHash())) {
+                                hashToFiles.get(file.getHash()).add(file.getAbsolutePath());
                             } else {
                                 Set<String> files = new HashSet<>();
-                                files.add(file.absolutePath);
-                                hashToFiles.put(file.hash, files);
+                                files.add(file.getAbsolutePath());
+                                hashToFiles.put(file.getAbsolutePath(), files);
                             }
                         }
                     } else {
