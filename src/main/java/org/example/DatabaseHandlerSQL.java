@@ -12,8 +12,6 @@ import java.util.*;
 
 public class DatabaseHandlerSQL {
     private static final String[] EXCLUDED_EXTENSIONS = {".sys", ".log", ".tmp", ".temp"};
-
-
     private static final String DB_PATH = "jdbc:sqlite:target/local_storage.db";
     private static Connection conn;
 //    public static Statement statmt;
@@ -80,8 +78,7 @@ public class DatabaseHandlerSQL {
             int he = 0;
             for(FileInfo file: files){
                 he++;
-                if(he%10000==0)
-                System.out.println(he);
+                if(he%10000==0) System.out.println(he);
             pstmt.setString(1, file.getAbsolutePath());
             pstmt.setString(2, file.getType());
             pstmt.setString(3, file.getHash());
@@ -148,25 +145,23 @@ public class DatabaseHandlerSQL {
     private static boolean isWindowsSystemDirectory(File file) {
         return file.getAbsolutePath().equalsIgnoreCase(System.getenv("windir"));
     }
-    public void dublicateCheck(String type, Boolean isPartlyCheck) {
+    public Map<String, Set<String>> dublicateCheck(String type, Boolean isPartlyCheck) {
         Map<String, Set<String>> hashToFiles = new HashMap<>();
-        String line;
-        String currentPath, currentType, currentHash;
 //        List<FileInfo> localList = fetchDocuments(type);
         if(!isPartlyCheck){
             hashToFiles = dublicateCheckFull(type);
 //            System.out.println(hashToFiles);
         } else {
-
+            //TODO Partly cases
         }
         for (Map.Entry<String, Set<String>> entry : hashToFiles.entrySet()) {
             String fileHash = entry.getKey();
             Set<String> filePaths = entry.getValue();
-
             System.out.println("file_hash: " + fileHash);
             System.out.println("file_paths: " + filePaths);
             System.out.println();
         }
+        return hashToFiles;
 }
     private Map<String, Set<String>> dublicateCheckFull(String type){
         Map<String, Set<String>> fileHashToPathsMap = new HashMap<>();

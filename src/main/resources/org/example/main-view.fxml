@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<!-- main-view.fxml -->
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.example.AppController"
+      stylesheets="@styles.css">
+
+  <Label text="Введите текст:" styleClass="header-label"/>
+
+  <HBox spacing="10">
+    <TextField fx:id="inputField" promptText="Введите текст" styleClass="text-field"/>
+    <Button text="Найти дубликаты" onAction="#findDuplicates" styleClass="find-button"/>
+    <Button fx:id="settingsButton" text="Настройки" onAction="#openSettings" styleClass="settings-button"/>
+  </HBox>
+
+  <VBox alignment="CENTER" spacing="10" styleClass="result-box">
+    <VBox alignment="CENTER" spacing="10">
+      <ProgressIndicator fx:id="progressIndicator" visible="false"/>
+      <Label fx:id="statusLabel" styleClass="status-label"/>
+    </VBox>
+    <!-- Убрано поле вывода текста -->
+  </VBox>
+
+  <TabPane fx:id="tabPane">
+    <!-- Ваши вкладки будут здесь -->
+  </TabPane>
+
+  <TreeView fx:id="folderTreeView" styleClass="folder-tree"/>
+
+</VBox>
