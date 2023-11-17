@@ -13,6 +13,7 @@ public class FileChecker {
         long startTime = System.currentTimeMillis();
         String rootPath = "";
         DatabaseHandlerSQL dbHandler = new DatabaseHandlerSQL();
+        dbHandler.clearDatabase();
         // Замените на путь к корневому каталогу вашей файловой системы
         long checkTime = System.currentTimeMillis();
         int THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors(); // Количество потоков в пуле

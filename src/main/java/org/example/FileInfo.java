@@ -9,16 +9,16 @@ public final class FileInfo {
     private static final String[] IMAGE_EXTENSIONS =
         {
                 "jpg","jpeg","jpe", "png","tif","tiff",
-//                "svg",
+//                "svg", FIXME ERROR WHEN SCANNING
                 "bmp",
-//                "webp",
+//                "webp",FIXME ERROR WHEN SCANNING
                 "jfif", "heic","arw"
-//            "jxr",  // ПО УМОЛЧАНИЮ НЕ ЧИТАЕТСЯ
+//            "jxr",  // FIXME ПО УМОЛЧАНИЮ НЕ ЧИТАЕТСЯ
         };
     private static final String[] TEXT_EXTENSIONS = {
             "txt", "md",
             "html", "htm", "mhtml", "mht",
-            "css", "js", "json", "xml", "csv", "py", "java",
+            "css", "scss", "js", "json", "xml", "csv", "py", "java",
             "c", "cpp", "rb", "php", "yaml", "toml", "ini",
             "cfg", "bat", "sh", "sql", "rtf", "tex",
             "lrc", "sub", "srt", "ass", "ssa", "vtt", "doc",
@@ -85,7 +85,6 @@ public final class FileInfo {
                 this.hash = getSHA256v2(this.absolutePath,32768);
                 break;
         }
-
     }
 
     private String setType(String extension) {
