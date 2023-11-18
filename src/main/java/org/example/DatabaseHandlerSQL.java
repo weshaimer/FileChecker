@@ -1,6 +1,6 @@
 package org.example;
 
-import java.io.File;
+import java.io.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -24,7 +24,7 @@ public class DatabaseHandlerSQL {
         }
     }
 
-    private void initDB() throws SQLException, ClassNotFoundException {
+    public void initDB() throws SQLException, ClassNotFoundException {
             Class.forName("org.sqlite.JDBC");
             conn = connect();
             Statement statmt = conn.createStatement();
@@ -207,26 +207,124 @@ public class DatabaseHandlerSQL {
 
         return fileHashToPathsMap;
     }
-public List<FileInfo> fetchDocuments(String type) {
-    System.out.println("Начинаю рисовать базу");
-    String fetchDataQuery = "SELECT * FROM files_info";
-    List<FileInfo> documents = new ArrayList<>();
-    if (!type.isEmpty()) {
-        fetchDataQuery += String.format(" WHERE file_type =\"%s\" ",type); }
-    try (Connection conn = DriverManager.getConnection(DB_PATH);
-         PreparedStatement pstmt = conn.prepareStatement(fetchDataQuery)) {
-        ResultSet rs = pstmt.executeQuery();
-        while (rs.next()) {
-            documents.add(new FileInfo(
-//                        rs.getInt("id"),
-                    rs.getString("file_path"),
-                    rs.getString("file_type"),
-                    rs.getString("file_hash")
-            ));  }
-    } catch (SQLException e) {
-        e.printStackTrace();
+    public List<FileInfo> fetchDocuments(String type, String filePath) {
+        System.out.println("Начинаю рисовать базу");
+        String fetchDataQuery = "SELECT * FROM files_info";
+        List<FileInfo> documents = new ArrayList<>();
+
+        List<String> conditions = new ArrayList<>();
+        if (!type.isEmpty()) {
+            conditions.add("file_type = '" + type + "'");
+        }
+        if (filePath != null && !filePath.isEmpty()) {
+            conditions.add("file_path = '" + filePath + "'");
+        }
+
+        if (!conditions.isEmpty()) {
+            fetchDataQuery += " WHERE " + String.join(" AND ", conditions);
+        }
+
+        try (Connection conn = DriverManager.getConnection(DB_PATH);
+             PreparedStatement pstmt = conn.prepareStatement(fetchDataQuery)) {
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                documents.add(new FileInfo(
+                        rs.getString("file_path"),
+                        rs.getString("file_type"),
+                        rs.getString("file_hash")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Заканчиваю");
+        return documents; // Возвращаем список документов
     }
-    System.out.println("Заканчиваю");
-    return documents; // Возвращаем список документов
-}
+    public void saveScanPath(String path) {
+        try (FileWriter writer = new FileWriter("last_scan_path.txt")) {
+            writer.write(path);
+        } catch (IOException e) {
+            System.err.println("Ошибка при записи пути сканирования: " + e.getMessage());
+        }
+    }
+    //Этот метод принимает путь к папке (path) в качестве параметра и записывает его в файл last_scan_path.txt. В случае ошибки записи в файл, он выводит сообщение об ошибке.
+
+    public String readScanPath() {
+        try (BufferedReader reader = new BufferedReader(new FileReader("last_scan_path.txt"))) {
+            return reader.readLine();
+        } catch (IOException e) {
+            System.err.println("Ошибка при чтении пути сканирования: " + e.getMessage());
+            return null;
+        }
+    }
+    //Этот метод читает первую строку из файла last_scan_path.txt, которая содержит путь к последней сканированной папке. Если возникает ошибка при чтении файла, метод возвращает null и выводит сообщение об ошибке
+
+    public void updateFileInfo(FileInfo fileInfo) {
+        String updateQuery = "UPDATE files_info SET file_type = ?, file_hash = ? WHERE file_path = ?";
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(updateQuery)) {
+
+            pstmt.setString(1, fileInfo.getType());
+            pstmt.setString(2, fileInfo.getHash());
+            pstmt.setString(3, fileInfo.getAbsolutePath());
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    //Этот метод обновит запись в базе данных для файла, чей хеш изменился. Он принимает объект FileInfo в качестве параметра
+    public void deleteFileInfo(String filePath) {
+        String deleteQuery = "DELETE FROM files_info WHERE file_path = ?";
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(deleteQuery)) {
+
+            pstmt.setString(1, filePath);
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    //Этот метод удаляет запись о файле из базы данных. Он принимает абсолютный путь файла в качестве параметра
+    public void updateDatabase(String currentPath) {
+        String lastScannedPath = readScanPath();
+        if (!currentPath.equals(lastScannedPath)) {
+            // Путь изменился, можно очистить базу данных или прервать операцию
+            clearDatabase();
+            return;
+        }
+
+        List<FileInfo> currentFiles = checkFileSystem(currentPath);
+        List<FileInfo> existingFiles = fetchDocuments("", null);
+
+        Set<String> existingPaths = new HashSet<>();
+        for (FileInfo existingFile : existingFiles) {
+            existingPaths.add(existingFile.getAbsolutePath());
+        }
+
+        // Update и Insert
+        for (FileInfo currentFile : currentFiles) {
+            if (existingPaths.contains(currentFile.getAbsolutePath())) {
+                // Update, если хеш изменился
+                List<FileInfo> dbFileList = fetchDocuments("", currentFile.getAbsolutePath());
+                if (!dbFileList.isEmpty()) {
+                    FileInfo dbFile = dbFileList.get(0);
+                    if (!dbFile.getHash().equals(currentFile.getHash())) {
+                        updateFileInfo(currentFile);
+                    }
+                }
+            } else {
+                // Insert, если файл новый
+                insertData(currentFile.getAbsolutePath(), currentFile.getType(), currentFile.getHash());
+            }
+        }
+
+        // Delete устаревших файлов
+        for (FileInfo existingFile : existingFiles) {
+            if (currentFiles.stream().noneMatch(f -> f.getAbsolutePath().equals(existingFile.getAbsolutePath()))) {
+                deleteFileInfo(existingFile.getAbsolutePath());
+            }
+        }
+    }
 }
