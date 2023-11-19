@@ -1,7 +1,11 @@
 package org.example;
 
+import com.google.common.hash.Hashing;
+
 import java.io.*;
-import java.security.*;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class TextHasher {
 //    public static void main(String[] args) {
@@ -25,44 +29,42 @@ public class TextHasher {
 //            }
 //        }
 //    }
-
-    // Метод для вычисления SHA-256 хэша файла
+    // Метод для вычисления SHA-256 хэша файла по содержанию
     public static String calculateSHA256(File file) throws IOException, NoSuchAlgorithmException {
-        // Инициализация объекта MessageDigest для вычисления хэша
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        // Чтение данных из файла с учетом кодировки UTF-8
+        String content = com.google.common.io.Files.asCharSource(file, StandardCharsets.UTF_8).read();
 
-        // Получение размера файла
-        long fileSize = file.length();
-
-        // Создание буфера для чтения данных из файла с размером, равным размеру файла
-        byte[] dataBytes = new byte[(int) fileSize];
-
-        // Создание потока для чтения файла
-        FileInputStream fis = new FileInputStream(file);
-
-        // Чтение данных из файла
-        int bytesRead = fis.read(dataBytes);
-
-        // Проверка, что количество прочитанных байт соответствует размеру файла
-        if (bytesRead != fileSize) {
-            throw new IOException("Ошибка чтения файла");
-        }
-
-        // Обновление хэша
-        md.update(dataBytes);
-
-        // Получение байтового массива с хэшем
-        byte[] mdBytes = md.digest();
-
-        // Преобразование байтового массива в строку в шестнадцатеричном формате
-        StringBuilder hexString = new StringBuilder();
-        for (byte mdByte : mdBytes) {
-            String hex = Integer.toHexString(0xff & mdByte);
-            if (hex.length() == 1) hexString.append('0');
-            hexString.append(hex);
-        }
-
-        // Возвращение полученной строки с хэшем
-        return hexString.toString();
+        // Вычисление SHA-256 хэша по содержанию файла
+        return Hashing.sha256().hashString(content, StandardCharsets.UTF_8).toString();
     }
+
+//    // Метод для вычисления SHA-256 хэша файла по содержанию
+//    public static String calculateSHA256(File file) throws IOException, NoSuchAlgorithmException {
+//        // Инициализация объекта MessageDigest для вычисления хэша
+//        MessageDigest md = MessageDigest.getInstance("SHA-256");
+//
+//        // Создание потока для чтения файла с указанием кодировки UTF-8
+//        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+//            String line;
+//            // Чтение файла построчно
+//            while ((line = reader.readLine()) != null) {
+//                // Обновление хэша
+//                md.update(line.getBytes(StandardCharsets.UTF_8));
+//            }
+//        }
+//
+//        // Получение байтового массива с хэшем
+//        byte[] mdBytes = md.digest();
+//
+//        // Преобразование байтового массива в строку в шестнадцатеричном формате
+//        StringBuilder hexString = new StringBuilder();
+//        for (byte mdByte : mdBytes) {
+//            String hex = Integer.toHexString(0xff & mdByte);
+//            if (hex.length() == 1) hexString.append('0');
+//            hexString.append(hex);
+//        }
+//
+//        // Возвращение полученной строки с хэшем
+//        return hexString.toString();
+//    }
 }

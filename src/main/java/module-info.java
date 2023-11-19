@@ -10,6 +10,7 @@ module org.example {
     requires thumbnailator;
     requires org.xerial.sqlitejdbc;
     requires java.desktop;
+    requires com.google.common;
 
     opens org.example to javafx.fxml;
     exports org.example;
