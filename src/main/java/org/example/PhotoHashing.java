@@ -28,7 +28,7 @@ public class PhotoHashing {
 //            }
 //        }
 //    }
-
+//
 //    private static List<File> getSupportedImageFiles(String directoryPath) {
 //        // Получаем список поддерживаемых изображений из директории
 //        List<File> imageFiles = new ArrayList<>();
@@ -44,14 +44,15 @@ public class PhotoHashing {
 //
 //        return imageFiles;
 //    }
-
+//
 //    private static boolean isSupportedImage(File file) {
 //        // Проверяем, является ли файл поддерживаемым изображением
 //        String fileName = file.getName().toLowerCase();
 //        return fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".jpe") ||
 //                fileName.endsWith(".png") || fileName.endsWith(".tif") || fileName.endsWith(".tiff") ||
 //                fileName.endsWith(".svg") || fileName.endsWith(".bmp") || fileName.endsWith(".webp") ||
-//                fileName.endsWith(".jfif");
+//                fileName.endsWith(".jfif") || fileName.endsWith(".heic") || fileName.endsWith(".arw") ||
+//                fileName.endsWith(".jxr");
 //    }
 
     public static String calculatePHashPhoto(File imageFile) throws IOException {
@@ -77,7 +78,9 @@ public class PhotoHashing {
         // Удаляем временные файлы
         resizedImage.delete();
 
-        return pHash;
+        // Преобразуем хэш в шестнадцатеричную систему счисления
+        return convertToHex(pHash);
+
     }
 
     private static File resizeImage(File originalImage) throws IOException {
@@ -120,5 +123,15 @@ public class PhotoHashing {
             }
         }
         return hash.toString();
+    }
+    private static String convertToHex(String binaryHash) {
+        // Преобразуем бинарный хэш в шестнадцатеричный формат
+        StringBuilder hexHash = new StringBuilder();
+        for (int i = 0; i < binaryHash.length(); i += 4) {
+            String nibble = binaryHash.substring(i, i + 4);
+            int decimal = Integer.parseInt(nibble, 2);
+            hexHash.append(Integer.toHexString(decimal));
+        }
+        return hexHash.toString();
     }
 }

@@ -9,6 +9,7 @@ module org.example {
     requires MarvinFramework;
     requires thumbnailator;
     requires org.xerial.sqlitejdbc;
+    requires java.desktop;
 
     opens org.example to javafx.fxml;
     exports org.example;

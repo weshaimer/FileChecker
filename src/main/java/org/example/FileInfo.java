@@ -9,10 +9,10 @@ public final class FileInfo {
     private static final String[] IMAGE_EXTENSIONS =
         {
                 "jpg","jpeg","jpe", "png","tif","tiff",
-//                "svg", FIXME ERROR WHEN SCANNING
+                "svg", //FIXME ERROR WHEN SCANNING
                 "bmp",
-//                "webp",FIXME ERROR WHEN SCANNING
-                "jfif", "heic","arw"
+                "webp",//FIXME ERROR WHEN SCANNING
+                "jfif", "heic","arw",
 //            "jxr",  // FIXME ПО УМОЛЧАНИЮ НЕ ЧИТАЕТСЯ
         };
     private static final String[] TEXT_EXTENSIONS = {
