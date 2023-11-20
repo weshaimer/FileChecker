@@ -7,6 +7,7 @@ import org.mozilla.universalchardet.UniversalDetector;
 //import java.io.*;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 //import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -53,18 +54,19 @@ public class TextHasher {
         detector.dataEnd();
 
         String detectedCharset = detector.getDetectedCharset();
-        System.out.println(detectedCharset);
+//        System.out.println(detectedCharset);
 
         // Проверка, если обнаруженная кодировка не UTF-8
-        if (detectedCharset != null && !detectedCharset.equalsIgnoreCase("UTF-8")) {
+        if (detectedCharset != null) {
             // Чтение содержимого в обнаруженной кодировке
             String content = new String(fileBytes, detectedCharset);
 
             // Вычисление SHA-256 хэша содержимого в UTF-8
             return Hashing.sha256().hashString(content, StandardCharsets.UTF_8).toString();
         } else {
+            String content = new String(fileBytes, Charset.defaultCharset());
             // Вычисление SHA-256 хэша содержимого в UTF-8 напрямую
-            return Hashing.sha256().hashBytes(fileBytes).toString();
+            return Hashing.sha256().hashString(content, StandardCharsets.UTF_8).toString();
         }
     }
 
