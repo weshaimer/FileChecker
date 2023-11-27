@@ -10,6 +10,10 @@ import java.sql.Statement;
 import java.util.*;
 
 
+/**
+ * Класс DatabaseHandlerSQL управляет взаимодействием с базой данных SQLite,
+ * предоставляя методы для вставки, обновления, удаления и извлечения информации о файлах.
+ */
 public class DatabaseHandlerSQL {
     private static final String[] EXCLUDED_EXTENSIONS = {".sys", ".log", ".tmp", ".temp"};
     private static final String DB_PATH = "jdbc:sqlite:target/local_storage.db";
@@ -24,6 +28,11 @@ public class DatabaseHandlerSQL {
         }
     }
 
+    /**
+     * Инициализирует соединение с базой данных и создает таблицу files_info, если она еще не существует.
+     * @throws SQLException в случае ошибки SQL.
+     * @throws ClassNotFoundException если класс драйвера JDBC не найден.
+     */
     public void initDB() throws SQLException, ClassNotFoundException {
             Class.forName("org.sqlite.JDBC");
             conn = connect();
@@ -45,6 +54,9 @@ public class DatabaseHandlerSQL {
         return DriverManager.getConnection(DB_PATH);
     }
 
+    /**
+     * Очищает все данные из таблицы files_info.
+     */
     public void clearDatabase() {
         String clearDBQuery = "DELETE FROM files_info";
         try (Connection conn = DriverManager.getConnection(DB_PATH);
@@ -58,6 +70,13 @@ public class DatabaseHandlerSQL {
         }
         //return FileInfos;
     }
+
+    /**
+     * Вставляет информацию о файле в таблицу files_info.
+     * @param filePath Путь к файлу.
+     * @param fileType Тип файла.
+     * @param fileHash Хеш файла.
+     */
     public void insertData(String filePath, String fileType, String fileHash) {
         String insertDataQuery = "INSERT INTO files_info(file_path, file_type, file_hash) VALUES(?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(DB_PATH);
@@ -70,6 +89,14 @@ public class DatabaseHandlerSQL {
             e.printStackTrace();
         }
     }
+    //FIXME Link FileInfo
+    /**
+     * Вставляет список информации о файлах в базу данных. Этот метод использует пакетную вставку
+     * для улучшения производительности при добавлении большого количества записей.
+     *
+     * @param files Список объектов {@link FileInfo}, содержащих информацию о файлах для вставки.
+     *              Каждый объект FileInfo должен содержать абсолютный путь к файлу, его тип и хеш.
+     */
     public void insertData(List<FileInfo> files) {
         String insertDataQuery = "INSERT INTO files_info(file_path, file_type, file_hash) VALUES(?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(DB_PATH);
@@ -94,6 +121,14 @@ public class DatabaseHandlerSQL {
 //        System.out.println("help");
     }
     private static Integer j = 0;
+    /**
+     * Рекурсивно сканирует файловую систему, начиная с указанного пути, и собирает информацию о файлах.
+     * Пропускает скрытые, системные файлы и файлы с определенными расширениями.
+     *
+     * @param path Путь в файловой системе, с которого начинается сканирование.
+     * @return Список объектов {@link FileInfo}, представляющих файлы в сканируемом пути.
+     *         Каждый объект {@link FileInfo} содержит абсолютный путь к файлу и другие сведения.
+     */
     public static List<FileInfo> checkFileSystem(String path) {
         List<FileInfo> FileInfos = new ArrayList<>();
         File file = new File(path);
@@ -145,6 +180,16 @@ public class DatabaseHandlerSQL {
     private static boolean isWindowsSystemDirectory(File file) {
         return file.getAbsolutePath().equalsIgnoreCase(System.getenv("windir"));
     }
+    /**
+     * Выполняет проверку на наличие дубликатов файлов заданного типа в базе данных.
+     * Метод может провести полную или частичную проверку в зависимости от указанного флага.
+     *
+     * @param type Тип файла для поиска дубликатов (например, "Image", "Text").
+     * @param isPartlyCheck Флаг, указывающий на необходимость частичной проверки.
+     *                      Если true, выполняется частичная проверка; если false - полная проверка.
+     * @return Map, где ключом является хеш файла, а значением - набор путей файлов, имеющих этот хеш.
+     *         Это позволяет идентифицировать дубликаты файлов на основе их хешей.
+     */
     public Map<String, Set<String>> dublicateCheck(String type, Boolean isPartlyCheck) {
         Map<String, Set<String>> hashToFiles = new HashMap<>();
 //        List<FileInfo> localList = fetchDocuments(type);
@@ -163,6 +208,15 @@ public class DatabaseHandlerSQL {
         }
         return hashToFiles;
 }
+    /**
+     * Осуществляет полную проверку на дубликаты файлов определенного типа в базе данных.
+     * Метод выполняет запрос к базе данных для поиска файлов заданного типа с одинаковым хешем,
+     * указывая на возможные дубликаты.
+     *
+     * @param type Тип файла для поиска дубликатов (например, "Image", "Text").
+     * @return Map, где ключом является хеш файла, а значением - набор путей файлов, имеющих этот хеш.
+     *         Это позволяет идентифицировать дубликаты файлов на основе их хешей.
+     */
     private Map<String, Set<String>> dublicateCheckFull(String type){
         Map<String, Set<String>> fileHashToPathsMap = new HashMap<>();
 
@@ -207,6 +261,16 @@ public class DatabaseHandlerSQL {
 
         return fileHashToPathsMap;
     }
+    /**
+     * Извлекает и возвращает список объектов {@link FileInfo}, соответствующих указанным критериям.
+     * Выполняет SQL-запрос к базе данных для извлечения информации о файлах, соответствующих заданным
+     * типу и/или пути файла.
+     *
+     * @param type Тип файла для фильтрации результатов запроса. Если строка пуста, фильтрация по ТИПУ не происходит.
+     * @param filePath Абсолютный путь файла для фильтрации результатов. Если строка пуста или null, фильтрация по пути не происходит.
+     * @return Список объектов {@link FileInfo}, содержащих данные о файлах из базы данных.
+     *         Каждый объект {@link FileInfo} включает абсолютный путь, тип файла и его хеш.
+     */
     public List<FileInfo> fetchDocuments(String type, String filePath) {
         System.out.println("Начинаю рисовать базу");
         String fetchDataQuery = "SELECT * FROM files_info";
@@ -240,6 +304,12 @@ public class DatabaseHandlerSQL {
         System.out.println("Заканчиваю");
         return documents; // Возвращаем список документов
     }
+    /**
+     * Сохраняет указанный путь сканирования в файл.
+     * Пишет путь к последней сканированной директории в файл last_scan_path.txt для последующего использования.
+     *
+     * @param path Строка пути, которую нужно сохранить в файл.
+     */
     public void saveScanPath(String path) {
         try (FileWriter writer = new FileWriter("last_scan_path.txt")) {
             writer.write(path);
@@ -247,8 +317,12 @@ public class DatabaseHandlerSQL {
             System.err.println("Ошибка при записи пути сканирования: " + e.getMessage());
         }
     }
-    //Этот метод принимает путь к папке (path) в качестве параметра и записывает его в файл last_scan_path.txt. В случае ошибки записи в файл, он выводит сообщение об ошибке.
-
+    /**
+     * Читает и возвращает последний сохраненный путь сканирования из файла.
+     * Пытается открыть и прочитать файл last_scan_path.txt, который содержит путь к последней сканированной директории.
+     *
+     * @return Строка, содержащая последний путь сканирования, или null, если произошла ошибка при чтении файла.
+     */
     public String readScanPath() {
         try (BufferedReader reader = new BufferedReader(new FileReader("last_scan_path.txt"))) {
             return reader.readLine();
@@ -257,7 +331,13 @@ public class DatabaseHandlerSQL {
             return null;
         }
     }
-    //Этот метод читает первую строку из файла last_scan_path.txt, которая содержит путь к последней сканированной папке. Если возникает ошибка при чтении файла, метод возвращает null и выводит сообщение об ошибке
+    /**
+     * Обновляет информацию о файле в базе данных. Метод изменяет тип и хеш файла в таблице
+     * files_info, основываясь на предоставленном объекте FileInfo.
+     *
+     * @param fileInfo Объект FileInfo, содержащий обновленные данные о файле. Должен включать
+     *                 абсолютный путь к файлу, его новый тип и хеш.
+     */
 
     public void updateFileInfo(FileInfo fileInfo) {
         String updateQuery = "UPDATE files_info SET file_type = ?, file_hash = ? WHERE file_path = ?";
@@ -273,7 +353,13 @@ public class DatabaseHandlerSQL {
             e.printStackTrace();
         }
     }
-    //Этот метод обновит запись в базе данных для файла, чей хеш изменился. Он принимает объект FileInfo в качестве параметра
+    /**
+     * Удаляет информацию о файле из базы данных по заданному пути файла.
+     * Использует SQL запрос для удаления записи в таблице files_info, где путь файла соответствует
+     * указанному аргументу.
+     *
+     * @param filePath Абсолютный путь к файлу, информация о котором должна быть удалена из базы данных.
+     */
     public void deleteFileInfo(String filePath) {
         String deleteQuery = "DELETE FROM files_info WHERE file_path = ?";
         try (Connection conn = this.connect();
@@ -286,7 +372,15 @@ public class DatabaseHandlerSQL {
             e.printStackTrace();
         }
     }
-    //Этот метод удаляет запись о файле из базы данных. Он принимает абсолютный путь файла в качестве параметра
+    /**
+     * Обновляет базу данных на основе текущего состояния файловой системы, начиная с указанного пути.
+     * Выполняет операции обновления, вставки и удаления, чтобы синхронизировать базу данных с
+     * текущим состоянием файлов в директории.
+     *
+     * @param currentPath Путь к директории, которая будет использоваться для сканирования и обновления данных.
+     *                    Если путь отличается от последнего сохраненного пути сканирования, метод очищает
+     *                    базу данных и завершает выполнение.
+     */
     public void updateDatabase(String currentPath) {
         String lastScannedPath = readScanPath();
         if (!currentPath.equals(lastScannedPath)) {
