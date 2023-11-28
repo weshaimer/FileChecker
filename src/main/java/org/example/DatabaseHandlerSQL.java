@@ -15,11 +15,30 @@ import java.util.*;
  * предоставляя методы для вставки, обновления, удаления и извлечения информации о файлах.
  */
 public class DatabaseHandlerSQL {
-    private static final String[] EXCLUDED_EXTENSIONS = {".sys", ".log", ".tmp", ".temp"};
-    private static final String DB_PATH = "jdbc:sqlite:target/local_storage.db";
-    private static Connection conn;
-//    public static Statement statmt;
 
+    /**
+     * Массив расширений файлов, которые необходимо исключить из сканирования.
+     */
+    private static final String[] EXCLUDED_EXTENSIONS = {".sys", ".log", ".tmp", ".temp"};
+
+    /**
+     * Путь к базе данных SQLite.
+     */
+    private static final String DB_PATH = "jdbc:sqlite:target/local_storage.db";
+
+    /**
+     * Соединение с базой данных.
+     */
+    private static Connection conn;
+
+    /**
+     * Счетчик для отображения прогресса при сканировании файловой системы.
+     */
+    private static Integer j = 0;
+
+    /**
+     * Конструктор класса. Инициализирует базу данных.
+     */
     public DatabaseHandlerSQL() {
         try  {
         initDB();
@@ -31,25 +50,33 @@ public class DatabaseHandlerSQL {
     /**
      * Инициализирует соединение с базой данных и создает таблицу files_info, если она еще не существует.
      * @throws SQLException в случае ошибки SQL.
-     * @throws ClassNotFoundException если класс драйвера JDBC не найден.
+     * @throws ClassNotFoundException если класс JDBC не найден.
      */
     public void initDB() throws SQLException, ClassNotFoundException {
-            Class.forName("org.sqlite.JDBC");
-            conn = connect();
-            Statement statmt = conn.createStatement();
-            System.out.println("База Подключена!");
-            if (conn != null) {
-                String createTableQuery = "CREATE TABLE IF NOT EXISTS files_info (" +
-                        "id INTEGER PRIMARY KEY," +
-                        "file_path TEXT NOT NULL," +
-                        "file_type TEXT NOT NULL," +
-                        "file_hash TEXT NOT NULL" +
-                        ")";
-                statmt.execute(createTableQuery);
-            }
-            conn.close();
-            statmt.close();
-            }
+        Class.forName("org.sqlite.JDBC");
+        conn = connect();
+        Statement statmt = conn.createStatement();
+        System.out.println("База Подключена!");
+        if (conn != null) {
+            // Создаем таблицу files_info, если она не существует
+            String createTableQuery = "CREATE TABLE IF NOT EXISTS files_info (" +
+                    "id INTEGER PRIMARY KEY," +
+                    "file_path TEXT NOT NULL," +
+                    "file_type TEXT NOT NULL," +
+                    "file_hash TEXT NOT NULL" +
+                    ")";
+            statmt.execute(createTableQuery);
+        }
+        conn.close();
+        statmt.close();
+    }
+
+    /**
+     * Устанавливает соединение с базой данных.
+     *
+     * @return Соединение с базой данных.
+     * @throws SQLException Если происходит ошибка при работе с SQL.
+     */
     private Connection connect() throws SQLException {
         return DriverManager.getConnection(DB_PATH);
     }
@@ -89,7 +116,7 @@ public class DatabaseHandlerSQL {
             e.printStackTrace();
         }
     }
-    //FIXME Link FileInfo
+
     /**
      * Вставляет список информации о файлах в базу данных. Этот метод использует пакетную вставку
      * для улучшения производительности при добавлении большого количества записей.
@@ -120,14 +147,13 @@ public class DatabaseHandlerSQL {
         }
 //        System.out.println("help");
     }
-    private static Integer j = 0;
+
     /**
      * Рекурсивно сканирует файловую систему, начиная с указанного пути, и собирает информацию о файлах.
      * Пропускает скрытые, системные файлы и файлы с определенными расширениями.
      *
      * @param path Путь в файловой системе, с которого начинается сканирование.
      * @return Список объектов {@link FileInfo}, представляющих файлы в сканируемом пути.
-     *         Каждый объект {@link FileInfo} содержит абсолютный путь к файлу и другие сведения.
      */
     public static List<FileInfo> checkFileSystem(String path) {
         List<FileInfo> FileInfos = new ArrayList<>();
@@ -162,12 +188,33 @@ public class DatabaseHandlerSQL {
         }
         return FileInfos;
     }
+
+    /**
+     * Проверяет, является ли файл редактируемым.
+     *
+     * @param file Файл для проверки.
+     * @return true, если файл можно редактировать, иначе false.
+     */
     private static boolean isEditable(File file) {
         return file.canWrite();
     }
+
+    /**
+     * Проверяет, является ли файл скрытым.
+     *
+     * @param file Файл для проверки.
+     * @return true, если файл скрыт, иначе false.
+     */
     private static boolean isHidden(File file) {
         return file.isHidden() && (file.getParentFile() != null);
     }
+
+    /**
+     * Проверяет, имеет ли файл одно из запрещенных расширений.
+     *
+     * @param fileName Имя файла.
+     * @return true, если файл имеет запрещенное расширение, иначе false.
+     */
     private static boolean hasExcludedExtension(String fileName) {
         for (String extension : EXCLUDED_EXTENSIONS) {
             if (fileName.endsWith(extension)) {
@@ -177,9 +224,16 @@ public class DatabaseHandlerSQL {
         return false;
     }
 
+    /**
+     * Проверяет, является ли указанный файл частью системного каталога.
+     *
+     * @param file Файл для проверки.
+     * @return true, если файл является частью системного каталога Windows, иначе false.
+     */
     private static boolean isWindowsSystemDirectory(File file) {
         return file.getAbsolutePath().equalsIgnoreCase(System.getenv("windir"));
     }
+
     /**
      * Выполняет проверку на наличие дубликатов файлов заданного типа в базе данных.
      * Метод может провести полную или частичную проверку в зависимости от указанного флага.
@@ -207,7 +261,8 @@ public class DatabaseHandlerSQL {
             System.out.println();
         }
         return hashToFiles;
-}
+    }
+
     /**
      * Осуществляет полную проверку на дубликаты файлов определенного типа в базе данных.
      * Метод выполняет запрос к базе данных для поиска файлов заданного типа с одинаковым хешем,
@@ -261,6 +316,7 @@ public class DatabaseHandlerSQL {
 
         return fileHashToPathsMap;
     }
+
     /**
      * Извлекает и возвращает список объектов {@link FileInfo}, соответствующих указанным критериям.
      * Выполняет SQL-запрос к базе данных для извлечения информации о файлах, соответствующих заданным
@@ -304,6 +360,7 @@ public class DatabaseHandlerSQL {
         System.out.println("Заканчиваю");
         return documents; // Возвращаем список документов
     }
+
     /**
      * Сохраняет указанный путь сканирования в файл.
      * Пишет путь к последней сканированной директории в файл last_scan_path.txt для последующего использования.
@@ -317,6 +374,7 @@ public class DatabaseHandlerSQL {
             System.err.println("Ошибка при записи пути сканирования: " + e.getMessage());
         }
     }
+
     /**
      * Читает и возвращает последний сохраненный путь сканирования из файла.
      * Пытается открыть и прочитать файл last_scan_path.txt, который содержит путь к последней сканированной директории.
@@ -331,6 +389,7 @@ public class DatabaseHandlerSQL {
             return null;
         }
     }
+
     /**
      * Обновляет информацию о файле в базе данных. Метод изменяет тип и хеш файла в таблице
      * files_info, основываясь на предоставленном объекте FileInfo.
@@ -338,7 +397,6 @@ public class DatabaseHandlerSQL {
      * @param fileInfo Объект FileInfo, содержащий обновленные данные о файле. Должен включать
      *                 абсолютный путь к файлу, его новый тип и хеш.
      */
-
     public void updateFileInfo(FileInfo fileInfo) {
         String updateQuery = "UPDATE files_info SET file_type = ?, file_hash = ? WHERE file_path = ?";
         try (Connection conn = this.connect();
@@ -353,6 +411,7 @@ public class DatabaseHandlerSQL {
             e.printStackTrace();
         }
     }
+
     /**
      * Удаляет информацию о файле из базы данных по заданному пути файла.
      * Использует SQL запрос для удаления записи в таблице files_info, где путь файла соответствует
@@ -372,6 +431,7 @@ public class DatabaseHandlerSQL {
             e.printStackTrace();
         }
     }
+
     /**
      * Обновляет базу данных на основе текущего состояния файловой системы, начиная с указанного пути.
      * Выполняет операции обновления, вставки и удаления, чтобы синхронизировать базу данных с
