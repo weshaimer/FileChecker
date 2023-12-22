@@ -7,6 +7,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+/**
+ * Класс TextHasher предоставляет методы для вычисления хэшей текстовых файлов.
+ */
 public class TextHasher {
 //    public static void main(String[] args) {
 //        // Массив расширений файлов, которые нужно хэшировать
@@ -29,7 +32,14 @@ public class TextHasher {
 //            }
 //        }
 //    }
-    // Метод для вычисления SHA-256 хэша файла по содержанию
+    /**
+     * Вычисляет SHA-256 хэш файла по его содержимому.
+     *
+     * @param file Файл, для которого требуется вычислить SHA-256 хэш.
+     * @return SHA-256 хэш в виде строки.
+     * @throws IOException              Возникает, если происходит ошибка ввода/вывода при чтении файла.
+     * @throws NoSuchAlgorithmException Возникает, если алгоритм SHA-256 не поддерживается.
+     */
     public static String calculateSHA256(File file) throws IOException, NoSuchAlgorithmException {
         // Чтение данных из файла с учетом кодировки UTF-8
         String content = com.google.common.io.Files.asCharSource(file, StandardCharsets.UTF_8).read();

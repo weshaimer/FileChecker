@@ -9,6 +9,9 @@ import java.io.IOException;
 //import java.util.ArrayList;
 //import java.util.List;
 
+/**
+ * Класс PhotoHashing предоставляет методы для вычисления хэшей изображений.
+ */
 public class PhotoHashing {
 
 //    public static void main(String[] args) {
@@ -54,7 +57,13 @@ public class PhotoHashing {
 //                fileName.endsWith(".jfif") || fileName.endsWith(".heic") || fileName.endsWith(".arw") ||
 //                fileName.endsWith(".jxr");
 //    }
-
+    /**
+     * Вычисляет хэш изображения в формате pHash.
+     *
+     * @param imageFile Файл изображения, для которого требуется вычислить хэш.
+     * @return Хэш изображения в формате pHash в виде строки.
+     * @throws IOException Возникает, если происходит ошибка ввода/вывода при обработке изображения.
+     */
     public static String calculatePHashPhoto(File imageFile) throws IOException {
         // Изменяем размер изображения
         File resizedImage = resizeImage(imageFile);
@@ -82,16 +91,25 @@ public class PhotoHashing {
         return convertToHex(pHash);
 
     }
-
+    /**
+     * Изменяет размер изображения до 32x32 пикселей.
+     *
+     * @param originalImage Исходное изображение.
+     * @return Файл с измененным размером изображения.
+     * @throws IOException Возникает, если происходит ошибка ввода/вывода при изменении размера изображения.
+     */
     private static File resizeImage(File originalImage) throws IOException {
-        // Изменяем размер изображения до 32x32 пикселей
         File resizedImage = new File("resized_" + originalImage.getName() + ".png");
         Thumbnails.of(originalImage).size(32, 32).outputFormat("png").toFile(resizedImage);
         return resizedImage;
     }
-
+    /**
+     * Вычисляет среднее значение DCT изображения.
+     *
+     * @param image Изображение, для которого требуется вычислить среднее значение DCT.
+     * @return Среднее значение DCT.
+     */
     private static double computeAverageDCT(MarvinImage image) {
-        // Вычисляем среднее значение DCT
         double sum = 0;
         for (int x = 0; x < image.getWidth(); x++) {
             for (int y = 0; y < image.getHeight(); y++) {
@@ -100,9 +118,13 @@ public class PhotoHashing {
         }
         return sum / (image.getWidth() * image.getHeight());
     }
-
+    /**
+     * Сокращает DCT изображения.
+     *
+     * @param image      Изображение, для которого требуется сократить DCT.
+     * @param averageDCT Среднее значение DCT.
+     */
     private static void reduceDCT(MarvinImage image, double averageDCT) {
-        // Сокращаем DCT
         for (int x = 0; x < image.getWidth(); x++) {
             for (int y = 0; y < image.getHeight(); y++) {
                 if (image.getIntComponent0(x, y) > averageDCT) {
@@ -113,9 +135,13 @@ public class PhotoHashing {
             }
         }
     }
-
+    /**
+     * Построение хэша для изображения.
+     *
+     * @param image Изображение, для которого требуется построить хэш.
+     * @return Хэш в бинарном формате в виде строки.
+     */
     private static String buildHash(MarvinImage image) {
-        // Построим хэш, представляющий изображение
         StringBuilder hash = new StringBuilder();
         for (int x = 0; x < image.getWidth(); x++) {
             for (int y = 0; y < image.getHeight(); y++) {
@@ -124,8 +150,13 @@ public class PhotoHashing {
         }
         return hash.toString();
     }
+    /**
+     * Преобразует бинарный хэш в шестнадцатеричный формат.
+     *
+     * @param binaryHash Бинарный хэш в виде строки.
+     * @return Шестнадцатеричный хэш в виде строки.
+     */
     private static String convertToHex(String binaryHash) {
-        // Преобразуем бинарный хэш в шестнадцатеричный формат
         StringBuilder hexHash = new StringBuilder();
         for (int i = 0; i < binaryHash.length(); i += 4) {
             String nibble = binaryHash.substring(i, i + 4);

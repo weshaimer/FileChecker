@@ -11,8 +11,21 @@ import marvin.util.MarvinAttributes;
 
 import java.util.List;
 
+/**
+ * Класс DCT реализует интерфейс MarvinImagePlugin и предоставляет функциональность
+ * для применения дискретного косинусного преобразования (DCT) к изображению.
+ */
 public class DCT implements MarvinImagePlugin {
-
+    /**
+     * Применяет дискретное косинусное преобразование (DCT) к заданной области изображения.
+     *
+     * @param imageIn   Входное изображение.
+     * @param imageOut  Выходное изображение, в которое записывается результат DCT.
+     * @param x         Координата x верхнего левого угла области изображения.
+     * @param y         Координата y верхнего левого угла области изображения.
+     * @param width     Ширина области изображения.
+     * @param height    Высота области изображения.
+     */
     public void process(MarvinImage imageIn, MarvinImage imageOut, int x, int y, int width, int height) {
         int[][] pixels = new int[width][height];
 
@@ -33,7 +46,12 @@ public class DCT implements MarvinImagePlugin {
             }
         }
     }
-
+    /**
+     * Применяет дискретное косинусное преобразование (DCT) к двумерному массиву пикселей.
+     *
+     * @param pixels Двумерный массив пикселей.
+     * @return Результат DCT в виде двумерного массива.
+     */
     private double[][] applyDCT(int[][] pixels) {
         int width = pixels.length;
         int height = pixels[0].length;
@@ -61,7 +79,7 @@ public class DCT implements MarvinImagePlugin {
 
         return result;
     }
-
+    // Реализации методов из интерфейса MarvinImagePlugin, которые не используются в данном контексте
     @Override
     public MarvinAttributesPanel getAttributesPanel() {
         return null;
