@@ -34,7 +34,6 @@ public final class FileInfo {
             "docx", "docm", "dotx", "dotm", "dot", "odt",
             "pdf", "xps"
     };
-    private static final String[] AUDIO_EXTENSIONS = {};
 
     // Основные свойства объекта FileInfo
     private final String absolutePath; // Абсолютный путь к файлу
@@ -145,15 +144,13 @@ public final class FileInfo {
      * Устанавливает тип файла на основе его расширения.
      *
      * @param extension Расширение файла.
-     * @return Тип файла (Image, Text, Audio, Other).
+     * @return Тип файла (Image, Text, Other).
      */
     private String setType(String extension) {
         if (Arrays.asList(IMAGE_EXTENSIONS).contains(extension)) {
             return "Image";
         } else if (Arrays.asList(TEXT_EXTENSIONS).contains(extension)) {
             return "Text";
-        } else if (Arrays.asList(AUDIO_EXTENSIONS).contains(extension)) {
-            return "Audio";
         } else {
             return "Other"; // Если расширение не соответствует ни одной из заданных категорий
         }

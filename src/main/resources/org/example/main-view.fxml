@@ -2,18 +2,20 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TreeView?>
 
 <!-- main-view.fxml -->
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.example.AppController"
       stylesheets="@styles.css">
 
-  <Label text="Введите текст:" styleClass="header-label"/>
+  <Label text="Введите путь:" styleClass="header-label"/>
 
   <HBox spacing="10">
-    <TextField fx:id="inputField" promptText="Введите текст" styleClass="text-field"/>
+    <TextField fx:id="inputField" promptText="Введите путь" styleClass="text-field"/>
     <Button text="Найти дубликаты" onAction="#findDuplicates" styleClass="find-button"/>
+    <Button fx:id="selectFoldersButton" text="Выбор дисков и папок" onAction="#selectFolders" styleClass="select-button"/>
     <Button fx:id="settingsButton" text="Настройки" onAction="#openSettings" styleClass="settings-button"/>
   </HBox>
 
@@ -21,14 +23,16 @@
     <VBox alignment="CENTER" spacing="10">
       <ProgressIndicator fx:id="progressIndicator" visible="false"/>
       <Label fx:id="statusLabel" styleClass="status-label"/>
+      <Label fx:id="duplicatesNotFoundLabel" styleClass="duplicates-not-found-label"/>
+      <Label fx:id="selectedFoldersLabel" styleClass="selected-folders-label"/>
     </VBox>
-    <!-- Убрано поле вывода текста -->
   </VBox>
+
+  <!-- Добавляем TreeView для отображения структуры папок и файлов -->
+  <TreeView fx:id="folderTreeView" VBox.vgrow="ALWAYS"/>
 
   <TabPane fx:id="tabPane">
     <!-- Ваши вкладки будут здесь -->
   </TabPane>
-
-  <TreeView fx:id="folderTreeView" styleClass="folder-tree"/>
 
 </VBox>

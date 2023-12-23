@@ -106,3 +106,16 @@ result-textarea {
 .settings-button:hover {
     -fx-cursor: hand;
 }
+/* Кнопка "Выбор дисков и папок" */
+.select-button {
+    -fx-font-size: 14px;
+    -fx-padding: 8px 12px; /* Увеличение отступов */
+    -fx-background-color: #4CAF50; /* Цвет фона */
+    -fx-text-fill: #ffffff; /* Цвет текста */
+    -fx-border-radius: 5px; /* Скругление углов */
+}
+
+.select-button:hover {
+    -fx-background-color: #45a049; /* Цвет фона при наведении */
+    -fx-cursor: hand;
+}
