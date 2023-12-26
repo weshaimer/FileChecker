@@ -1,5 +1,6 @@
 package org.example;
 
+import javafx.application.Platform;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
@@ -7,17 +8,27 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -290,9 +301,91 @@ public class AppController {
             }
             treeView.getRoot().getChildren().add(hashItem);
         }
-        treeView.setCellFactory(CheckBoxTreeCell.forTreeView());
+        treeView.setCellFactory(tv -> {
+            TreeCell<String> cell = new CheckBoxTreeCell<>();
+            cell.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+                String item = cell.getItem();
+                if (item != null && item.startsWith("Файл: ")) {
+                    String filePath = item.substring(6);
+                    if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+                        openFile(filePath);
+                        System.out.println("Double Click");
+                    } else if (event.getButton() == MouseButton.SECONDARY) {
+                        showContextMenu(cell, event.getScreenX(), event.getScreenY(), filePath);
+                        System.out.println("Right Click");
+                    }
+                }
+            });
+            return cell;
+        });
+
         treeView.setShowRoot(false);
         content.getChildren().add(treeView);
+    }
+    private void showContextMenu(TreeCell<String> cell, double x, double y, String filePath) {
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem openLocation = new MenuItem("Показать расположение");
+        MenuItem delete = new MenuItem("Удалить");
+
+        openLocation.setOnAction(e -> openFileLocation(filePath));
+        delete.setOnAction(e -> deleteFile(filePath, cell));
+
+        contextMenu.getItems().addAll(openLocation, delete);
+        contextMenu.show(cell.getGraphic(), x, y);
+    }
+    private void openFile(String filePath) {
+        if((new File(filePath)).exists()){
+        if (Desktop.isDesktopSupported()) {
+            new Thread(() -> {
+                try {
+                    Desktop.getDesktop().open(new File(filePath));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        }}
+        else { Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Файл не существует: " + filePath);
+            errorAlert.showAndWait();
+        }
+    }
+    private void openFileLocation(String filePath) {
+        if((new File(filePath)).exists()){
+        if (Desktop.isDesktopSupported()) {
+            new Thread(() -> {
+                try {
+                    Runtime.getRuntime().exec("explorer.exe /select," + filePath);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        }} else { Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Файл не существует: " + filePath);
+            errorAlert.showAndWait();
+        }
+    }
+
+    private void deleteFile(String filePath, TreeCell<String> cell) {
+        Platform.runLater(() -> {
+            File file = new File(filePath);
+            if (file.exists()) {
+                // Показать диалоговое окно для подтверждения
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Удалить файл: " + filePath + "?", ButtonType.YES, ButtonType.NO);
+                alert.showAndWait();
+
+                if (alert.getResult() == ButtonType.YES) {
+                    if (file.delete()) {
+                        cell.setStyle("-fx-text-fill: #ff0000;"); // Изменение цвета текста на красный
+
+                    } else {
+                        // Показать сообщение об ошибке, если файл не удален
+                        Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Не удалось удалить файл: " + filePath);
+                        errorAlert.showAndWait();
+                    }
+                }
+            } else {
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Файл не найден: " + filePath);
+                errorAlert.showAndWait();
+            }
+        });
     }
 
     /**
