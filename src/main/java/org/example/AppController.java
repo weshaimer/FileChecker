@@ -17,13 +17,12 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Контроллер приложения для поиска дубликатов.
@@ -50,7 +49,7 @@ public class AppController {
 
     private boolean isTaskRunning = false;
 
-    private List<String> selectedFolders;
+    private List<String> selectedFolders = new ArrayList<>();
 
     private DatabaseHandlerSQL dbHandler;
 
@@ -75,8 +74,7 @@ public class AppController {
 
         List<DuplicatesSearchService> services = new ArrayList<>();
 
-        for (String selectedFolder : selectedFolders) {
-            DuplicatesSearchService service = new DuplicatesSearchService(selectedFolder);
+            DuplicatesSearchService service = new DuplicatesSearchService(selectedFolders);
             services.add(service);
 
             service.setOnSucceeded(new EventHandler<>() {
@@ -86,7 +84,7 @@ public class AppController {
 
                     if (services.isEmpty()) {
                         progressIndicator.setVisible(false);
-                        statusLabel.setText("Сканирование завершено. Найдены дубликаты.");
+                        statusLabel.setText("Сканирование завершено.");
                         dbHandler = service.getValue();
                         displayResults(dbHandler);
                         isTaskRunning = false;
@@ -103,7 +101,6 @@ public class AppController {
 
             isTaskRunning = true;
             service.start();
-        }
     }
 
     /**
@@ -121,9 +118,10 @@ public class AppController {
     @FXML
     private void selectFolders() {
         // Создаем новое дерево для отображения выбранных папок и файлов
-        TreeView<String> selectedTreeView = new TreeView<>();
-        selectedTreeView.setRoot(new CheckBoxTreeItem<>("Выбранные папки и файлы"));
-
+        ListView<String> selectedListView = new ListView<>();
+        for(String path : selectedFolders){
+            selectedListView.getItems().add(path);
+        }
         // Добавляем кнопку "+" для выбора папок
         Image imgFolder = new Image("file:src/main/resources/org/example/add-folder.png");
         ImageView viewFolder = new ImageView(imgFolder);
@@ -132,11 +130,12 @@ public class AppController {
         Button folderButton = new Button();
         folderButton.setGraphic(viewFolder);
         folderButton.setOnAction(event -> {
+
             DirectoryChooser directoryChooser = new DirectoryChooser();
-            directoryChooser.setTitle("Выберите папки для сканирования");
-            File selectedFolder = directoryChooser.showDialog((Stage) tabPane.getScene().getWindow());
+            directoryChooser.setTitle("Выберите папку для сканирования");
+            File selectedFolder = directoryChooser.showDialog(selectedListView.getScene().getWindow());
             if (selectedFolder != null) {
-                addFileToTreeView(selectedFolder, (CheckBoxTreeItem<String>) selectedTreeView.getRoot());
+                addFileToTreeView(selectedFolder, selectedListView);
             }
         });
 
@@ -149,13 +148,11 @@ public class AppController {
         fileButton.setGraphic(viewFile);
         fileButton.setOnAction(event -> {
             FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Выберите файлы для сканирования");
-            List<File> selectedFiles = fileChooser.showOpenMultipleDialog((Stage) tabPane.getScene().getWindow());
-            if (selectedFiles != null && !selectedFiles.isEmpty()) {
-                for (File file : selectedFiles) {
-                    addFileToTreeView(file, (CheckBoxTreeItem<String>) selectedTreeView.getRoot());
+            fileChooser.setTitle("Выберите файл для сканирования");
+            File selectedFile = fileChooser.showOpenDialog(selectedListView.getScene().getWindow());
+            if (selectedFile != null) {
+                    addFileToTreeView(selectedFile, selectedListView);
                 }
-            }
         });
 
         // Добавляем кнопку "-", при нажатии на которую будет удален выбранный элемент
@@ -166,9 +163,9 @@ public class AppController {
         Button deleteButton = new Button();
         deleteButton.setGraphic(viewBin);
         deleteButton.setOnAction(event -> {
-            TreeItem<String> selectedItem = selectedTreeView.getSelectionModel().getSelectedItem();
-            if (selectedItem != null && selectedItem != selectedTreeView.getRoot()) {
-                selectedTreeView.getRoot().getChildren().remove(selectedItem);
+            String selectedItem = selectedListView.getSelectionModel().getSelectedItem();
+            if (selectedItem != null) {
+                selectedListView.getItems().remove(selectedItem);
             }
         });
 
@@ -178,15 +175,20 @@ public class AppController {
         // Добавляем кнопку "Готово", при нажатии на которую закрывается окно и обновляется информация
         Button doneButton = new Button("Готово");
         doneButton.setOnAction(event -> {
-            updateSelectedFolders(selectedTreeView.getRoot());
-            findDuplicates();
+            updateSelectedFolders(selectedListView);
             // Дополнительные действия при закрытии окна
+
+
+
+            ((Stage) selectedListView.getScene().getWindow()).close();
         });
 
         // Добавляем элементы управления в окно
-        VBox selectionBox = new VBox(hbox, selectedTreeView, doneButton);
+        VBox selectionBox = new VBox(hbox, selectedListView, doneButton);
         Stage stage = new Stage();
         stage.setScene(new Scene(selectionBox));
+        stage.setTitle("Выбор папок и файлов");
+        stage.setWidth(400);
         stage.show();
     }
 
@@ -196,30 +198,29 @@ public class AppController {
      * @param folder Папка для добавления в дерево.
      * @param parent Родительский узел дерева.
      */
-    private void addFolderToTreeView(File folder, CheckBoxTreeItem<String> parent) {
-        CheckBoxTreeItem<String> folderItem = new CheckBoxTreeItem<>(folder.getAbsolutePath());
-        parent.getChildren().add(folderItem);
-
-        File[] files = folder.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    addFolderToTreeView(file, folderItem);
-                } else {
-                    addFileToTreeView(file, folderItem);
-                }
-            }
-        }
-    }
+//    private void addFolderToTreeView(File folder, CheckBoxTreeItem<String> parent) {
+//        CheckBoxTreeItem<String> folderItem = new CheckBoxTreeItem<>(folder.getAbsolutePath());
+//        parent.getChildren().add(folderItem);
+//
+//        File[] files = folder.listFiles();
+//        if (files != null) {
+//            for (File file : files) {
+//                if (file.isDirectory()) {
+//                    addFolderToTreeView(file, folderItem);
+//                } else {
+//                    addFileToTreeView(file, folderItem);
+//                }
+//            }
+//        }
+//    }
     /**
      * Добавляет файл в дерево.
      *
      * @param file   Файл для добавления.
-     * @param parent Родительский узел дерева.
      */
-    private void addFileToTreeView(File file, CheckBoxTreeItem<String> parent) {
-        CheckBoxTreeItem<String> fileItem = new CheckBoxTreeItem<>(file.getAbsolutePath());
-        parent.getChildren().add(fileItem);
+    private void addFileToTreeView(File file, ListView root) {
+        String fileItem = file.getAbsolutePath();
+        root.getItems().add(fileItem);
     }
 
     /**
@@ -227,22 +228,15 @@ public class AppController {
      *
      * @param root Узел дерева для обработки.
      */
-    private void updateSelectedFolders(TreeItem<String> root) {
-        selectedFolders = new ArrayList<>();
-        updateSelectedFoldersRecursive(root);
-        selectedFoldersLabel.setText("Выбранные папки и файлы: " + selectedFolders);
+    private void updateSelectedFolders(ListView root) {
+        selectedFolders=new ArrayList<>();
+        for (Object item : root.getItems()) {
+            selectedFolders.add(item.toString());
+        }
+        System.out.println(selectedFolders);
+        selectedFoldersLabel.setText("Выбранные папки и файлы: " + selectedFolders.toString());
     }
 
-    // Обновленный рекурсивный метод для обновления списка выбранных папок и файлов на основе дерева
-    private void updateSelectedFoldersRecursive(TreeItem<String> item) {
-        if (item instanceof CheckBoxTreeItem && ((CheckBoxTreeItem<String>) item).isSelected() && item.getValue() != null) {
-            selectedFolders.add(item.getValue());
-        }
-
-        for (TreeItem<String> child : item.getChildren()) {
-            updateSelectedFoldersRecursive(child);
-        }
-    }
     /**
      * Отображение результатов сканирования во вкладках.
      *
@@ -305,15 +299,15 @@ public class AppController {
      * Сервис для выполнения поиска дубликатов в фоновом режиме.
      */
     private class DuplicatesSearchService extends Service<DatabaseHandlerSQL> {
-        private String folder;
+        private List<String> folders;
 
         /**
          * Конструктор с параметрами.
          *
-         * @param folder Список выбранных пользователем папок для сканирования.
+         * @param folders Список выбранных пользователем папок для сканирования.
          */
-        public DuplicatesSearchService(String folder) {
-            this.folder = folder;
+        public DuplicatesSearchService(List<String> folders) {
+            this.folders = folders;
         }
 
         private int i = 0;
@@ -333,42 +327,47 @@ public class AppController {
                     else executorService = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
 
                     long hashTime = 0;
-                    if (new File(folder).isDirectory()) {
-                        List<FileInfo> fetchDocuments = DatabaseHandlerSQL.checkFileSystem(folder);
-
-                        for (FileInfo file : fetchDocuments) {
-                            executorService.execute(() -> {
-                                synchronized (file) {
-                                    file.calcHash();
-                                    if (i % 10000 == 0)
-                                        System.out.println(i);
-                                    i++;
-                                }
-                            });
-                        }
-
-                        executorService.shutdown();
-                        try {
-                            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-                            dbHandler = new DatabaseHandlerSQL();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        hashTime = System.currentTimeMillis();
-                        dbHandler.insertData(fetchDocuments);
-                    } else if (new File(folder).isFile()) {
-                        // Добавьте обработку для сканирования отдельных файлов, если необходимо
+                    List<FileInfo> fetchDocuments= new ArrayList<>();
+                    for(String folder : folders){
+                       fetchDocuments.addAll(DatabaseHandlerSQL.checkFileSystem(folder));}
+//                    fetchDocuments = fetchDocuments.stream().distinct().collect(Collectors.toList());
+                    fetchDocuments= fetchDocuments.stream()
+                            .collect(Collectors.collectingAndThen(
+                                    Collectors.toMap(
+                                            FileInfo::getAbsolutePath,
+                                            Function.identity(),
+                                            (existing, replacement) -> existing),
+                                    map -> new ArrayList<>(map.values())
+                            ));
+                    System.out.println(fetchDocuments);
+                    for (FileInfo file : fetchDocuments) {
+                        executorService.execute(() -> {
+                            synchronized (file) {
+                                file.calcHash();
+                                if (i % 10000 == 0)
+                                    System.out.println(i);
+                                i++;
+                            }
+                        });
                     }
+                    executorService.shutdown();
+                    try {
+                        executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+                        dbHandler = new DatabaseHandlerSQL();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    hashTime = System.currentTimeMillis();
+                    dbHandler.insertData(fetchDocuments);
 
                     long endTime = System.currentTimeMillis();
-
                     long timeCheck = checkTime - startTime;
                     long timeHash = hashTime - checkTime;
                     long timeElapsed = endTime - hashTime;
                     System.out.println("Folders scan: " + timeCheck / 1000 + " Hashing: " + timeHash / 1000 + " SQL: " + timeElapsed / 1000);
-
                     return dbHandler;
                 }
+
             };
         }
     }
