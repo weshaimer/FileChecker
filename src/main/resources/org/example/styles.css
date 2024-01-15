@@ -12,14 +12,14 @@
     -fx-font-weight: bold;
 }
 
-/* Поле ввода текста */
-.text-field {
-    -fx-font-size: 14px;
-    -fx-padding: 8px; /* Увеличение отступов */
-    -fx-border-width: 0;
-    -fx-background-color: #f0f0f0; /* Цвет фона */
-    -fx-pref-width: 400; /* Установка ширины */
-}
+/*!* Поле ввода текста *!*/
+/*.text-field {*/
+/*    -fx-font-size: 14px;*/
+/*    -fx-padding: 8px; !* Увеличение отступов *!*/
+/*    -fx-border-width: 0;*/
+/*    -fx-background-color: #f0f0f0; !* Цвет фона *!*/
+/*    -fx-pref-width: 400; !* Установка ширины *!*/
+/*}*/
 
 /* Кнопка "Найти дубликаты" */
 .find-button {
@@ -35,22 +35,22 @@
     -fx-background-color: #fff;
 }
 
-/* Статусная метка */
-.status-label {
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-}
+/*!* Статусная метка *!*/
+/*.status-label {*/
+/*    -fx-font-size: 14px;*/
+/*    -fx-font-weight: bold;*/
+/*}*/
 
-/* Область для вывода результатов */
-result-textarea {
-    -fx-font-size: 14px;
-    -fx-padding: 5px;
-    -fx-border-width: 0; /* Убираем границу */
-    -fx-background-color: #f0f0f0; /* Цвет фона */
-    -fx-pref-width:600; /* Возвращаем предыдущую ширину */
-    -fx-max-width: 600; /* Установка максимальной ширины */
-    -fx-max-height: 200; /* Установка максимальной высоты */
-}
+/*!* Область для вывода результатов *!*/
+/*result-textarea {*/
+/*    -fx-font-size: 14px;*/
+/*    -fx-padding: 5px;*/
+/*    -fx-border-width: 0; !* Убираем границу *!*/
+/*    -fx-background-color: #f0f0f0; !* Цвет фона *!*/
+/*    -fx-pref-width:600; !* Возвращаем предыдущую ширину *!*/
+/*    -fx-max-width: 600; !* Установка максимальной ширины *!*/
+/*    -fx-max-height: 200; !* Установка максимальной высоты *!*/
+/*}*/
 
 
 /* Добавляем полосы прокрутки для текстового поля */
